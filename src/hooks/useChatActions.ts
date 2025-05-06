@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useChat } from '../context/ChatContext';
 import { MessageSender, ConsultationMode, Doctor, AvailabilitySlot, PatientProspect } from '../types/types';
@@ -369,7 +368,14 @@ export const useChatActions = () => {
 
   // Handle consultation history phone input
   const handleConsultationHistoryPhone = useCallback((phone: string) => {
+    // Simple validation
+    if (phone.length < 10) {
+      addMessage("Please provide a valid phone number with at least 10 digits.", MessageSender.BOT);
+      return;
+    }
+    
     const consultations = getConsultationsByPhone(phone);
+    console.log("Retrieved consultations:", consultations); // Add logging for debugging
     
     if (consultations.length > 0) {
       addMessage(`I found ${consultations.length} consultations for phone number ${phone}:`, MessageSender.BOT);

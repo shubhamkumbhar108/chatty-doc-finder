@@ -57,9 +57,15 @@ export const consultations: Consultation[] = [
 
 // Function to get consultations by phone number
 export const getConsultationsByPhone = (phoneNumber: string) => {
-  return consultations.filter(consultation => 
+  console.log("Searching for consultations with phone:", phoneNumber);
+  console.log("Available consultations:", consultations);
+  
+  const result = consultations.filter(consultation => 
     consultation.patientPhone === phoneNumber
   );
+  
+  console.log("Found consultations:", result);
+  return result;
 };
 
 // Function to get prescriptions by phone and optionally by date
