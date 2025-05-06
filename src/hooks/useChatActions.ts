@@ -142,6 +142,12 @@ export const useChatActions = () => {
           displayDoctorSlots(chatContext.selectedDoctor);
         }
         break;
+      case 'USE_LOCATION':
+        handleUseLocation();
+        break;
+      case 'SHOW_ALL_DOCTORS':
+        showAllDoctors();
+        break;
       case 'SELECT_MODE':
         if (data) {
           const mode = data as ConsultationMode;
@@ -168,6 +174,35 @@ export const useChatActions = () => {
     }
   }, [addMessage, updateChatContext, chatContext]);
 
+  // Handle location use request
+  const handleUseLocation = useCallback(async () => {
+    addMessage("Accessing your location...", MessageSender.BOT);
+    
+    const location = await requestUserLocation();
+    
+    if (location) {
+      updateChatContext({ userLocation: location });
+      const nearbyDoctors = findNearbyDoctors(location.latitude, location.longitude);
+      
+      if (nearbyDoctors.length > 0) {
+        addMessage(`I found ${nearbyDoctors.length} doctors near your location. Here they are:`, MessageSender.BOT);
+        displayDoctorList(nearbyDoctors);
+      } else {
+        addMessage("I couldn't find any doctors near your location. Here are all available doctors:", MessageSender.BOT);
+        displayDoctorList(doctors);
+      }
+    } else {
+      addMessage("I couldn't access your location. Here are all available doctors:", MessageSender.BOT);
+      displayDoctorList(doctors);
+    }
+  }, [addMessage, requestUserLocation, updateChatContext]);
+
+  // Show all doctors
+  const showAllDoctors = useCallback(() => {
+    addMessage("Here are all available doctors:", MessageSender.BOT);
+    displayDoctorList(doctors);
+  }, [addMessage]);
+
   // Handle symptoms input
   const handleSymptoms = useCallback((symptoms: string) => {
     updateChatContext({ userQuery: symptoms });
@@ -181,30 +216,11 @@ export const useChatActions = () => {
   // Handle location confirmation
   const handleLocationConfirmation = useCallback(async (input: string) => {
     if (input.includes('yes') || input.includes('sure') || input.includes('okay')) {
-      addMessage("Accessing your location...", MessageSender.BOT);
-      
-      const location = await requestUserLocation();
-      
-      if (location) {
-        updateChatContext({ userLocation: location });
-        const nearbyDoctors = findNearbyDoctors(location.latitude, location.longitude);
-        
-        if (nearbyDoctors.length > 0) {
-          addMessage(`I found ${nearbyDoctors.length} doctors near your location. Here they are:`, MessageSender.BOT);
-          displayDoctorList(nearbyDoctors);
-        } else {
-          addMessage("I couldn't find any doctors near your location. Here are all available doctors:", MessageSender.BOT);
-          displayDoctorList(doctors);
-        }
-      } else {
-        addMessage("I couldn't access your location. Here are all available doctors:", MessageSender.BOT);
-        displayDoctorList(doctors);
-      }
+      handleUseLocation();
     } else {
-      addMessage("No problem. Here are all available doctors:", MessageSender.BOT);
-      displayDoctorList(doctors);
+      showAllDoctors();
     }
-  }, [addMessage, requestUserLocation, updateChatContext]);
+  }, [handleUseLocation, showAllDoctors]);
 
   // Display list of doctors
   const displayDoctorList = useCallback((doctorList: Doctor[]) => {
